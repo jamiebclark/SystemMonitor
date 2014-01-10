@@ -1,6 +1,6 @@
 <?php 
+debug($apacheStatus);
 extract($apacheStatus);
-
 if ($expand) {
 	$title = 'Expanded Info';
 	$link = array('Condense', array(0));
@@ -8,84 +8,35 @@ if ($expand) {
 	$title = 'Condensed Info';
 	$link = array('Expand', array(1));
 }
+$top = array();
+
+//CPU Usage
+$top['CPU Usage'] = array($topStatus['cpu']['used'], 100, '%', $topStatus['cpu']['time']);
+$top['Memory'] = array($topStatus['memory']['used'], $topStatus['memory']['total'], 'size', $topStatus['memory']['time']);
+$top['Apache Status'] = array($apacheStatus['used'], $apacheStatus['total'], 'Ports', $apacheStatus['time']);
+
 ?>
-<div id="apacheStatus">
-<p class="note"><?php echo $this->Html->link(
-		'Last pulled: ' . date('F j, Y g:i:s a'),
-		Router::url()
-	);?>
-</p> 
-<p><strong><?php echo $title; ?></strong> [<?php echo $this->Html->link($link[0], $link[1]); ?>]</p>
+<div id="apachestatus">
+	<p class="note"><?php echo $this->Html->link(
+			'Last pulled: ' . date('F j, Y g:i:s a'),
+			Router::url()
+		);?>
+	</p> 
+	<p><strong><?php echo $title; ?></strong> [<?php echo $this->Html->link($link[0], $link[1]); ?>]</p>
 
-<?php 
-//CPU
-echo $this->Layout->contentBoxOpen('CPU Usage');
-extract($topStatus['cpu']);
-echo $this->Html->tag('h3');
-echo $this->Html->tag(
-	'font', 
-	$unused.'% Idle',
-	array(
-		'style' => 'color:'.$this->TextGraph->colorRange($unused, 0, $unused + $used)
-	)
-);
-echo ' ';
-echo $this->Html->tag(
-	'font', 
-	$used . '% Used',
-	array(
-		'style' => 'color:' . $this->TextGraph->colorRange($unused, 0, $unused + $used)
-	)
-);
-echo "</h3>\n";
+	<div class="row-fluid">
+	<?php foreach ($top as $title => $stats): 
+		list($used, $total, $type) = $stats + array(null, null, null);
+		?>
+		<div class="span4">
+			<?php echo $this->SystemMonitor->statusBox($title, $used, $total, $type); ?>
+		</div>
+	<?php endforeach ?>
+	</div>
+<?php
 
-echo $this->TextGraph->barGraph($unused,$used);
-
-
-if($expand) {
-	$this->Table->reset();
-	foreach($topCpuKeys as $key => $label) {
-		$reverse = ($key != 'id');
-		$color = $this->TextGraph->colorRange($breakdown[$key], 0, 100, $reverse);
-		$this->Table->cells(array(
-			array(
-				$breakdown[$key] . '%',
-				null, null, null, array('style'=>'color:'.$color)
-			),
-			array(
-				$label,
-				null, null, null, array('style'=>'color:'.$color)
-			)
-		), true);
-	}
-	echo $this->Table->output();
-}
-echo $this->Html->tag('p', 'Loaded in ' . number_format($time / 1000, 2) . ' seconds');
-echo $this->Layout->contentBoxClose();
-
-
-//Memory
-echo $this->Layout->contentBoxOpen('Memory Monitor');
-extract($memInfo['total']);
-echo $this->Html->tag('h2', $this->Number->toReadableSize($total) . ' Memory');
-
-echo $this->Html->tag('h3');
-echo $this->Html->tag(
-	'font', 
-	$this->Number->toReadableSize($used) . ' Used',
-	array('style' => 'color:' . $this->TextGraph->colorRange($free, 0, $total))
-);
-echo ' ';
-echo $this->Html->tag(
-	'font', 
-	$this->Number->toReadableSize($free) . ' Idle',
-	array('style' => 'color:' . $this->TextGraph->colorRange($free, 0, $total))
-);
-echo "</h3>\n";
-
-echo $this->TextGraph->barGraph($free,$used);
-
-if($expand) {
+if($expand || true) {
+	//Memory
 	$this->Table->reset();
 	foreach($memInfo['detail'] as $label => $val) {
 		$reverse = ($label != 'free');
@@ -102,34 +53,26 @@ if($expand) {
 		), true);
 	}
 	echo $this->Table->output();
-}
-echo $this->Html->tag('p', 'Loaded in ' . number_format($time / 1000, 2) . ' seconds');
-echo $this->Layout->contentBoxClose();
 
-
-//Apache status
-echo $this->Layout->contentBoxOpen('Apache Status', array('id' => 'apacheStatus'));
-extract($apacheStatus);
-echo $this->Html->tag('h2', number_format($total) . ' Ports');
-
-echo $this->Html->tag('h3');
-echo $this->Html->tag(
-	'font', 
-	($used) . ' Used',
-	array('style' => 'color:' . $this->TextGraph->colorRange($unused, 0, $total))
-);
-echo ' ';
-echo $this->Html->tag(
-	'font', 
-	($unused) . ' Open',
-	array('style' => 'color:' . $this->TextGraph->colorRange($unused, 0, $total))
-);
-echo "</h3>\n";
-echo $this->TextGraph->barGraph($unused,$used);
-
-if($expand) {
+	//CPU
 	$this->Table->reset();
-	
+	foreach($topCpuKeys as $key => $label) {
+		$reverse = ($key != 'id');
+		$color = $this->TextGraph->colorRange($breakdown[$key], 0, 100, $reverse);
+		$this->Table->cells(array(
+			array(
+				$breakdown[$key] . '%',
+				null, null, null, array('style'=>'color:'.$color)
+			),
+			array(
+				$label,
+				null, null, null, array('style'=>'color:'.$color)
+			)
+		), true);
+	}
+	echo $this->Table->output();
+
+	$this->Table->reset();
 	foreach ($apacheStatusKeys as $key => $label) {
 		$val = !empty($breakdown[$key]) ? $breakdown[$key] : 0;
 		$this->Table->cells(array(
@@ -139,7 +82,6 @@ if($expand) {
 		), true);
 		unset($breakdown[$key]);
 	}
-	
 	foreach($breakdown as $key => $count) {
 		$this->Table->cells(array(
 			array(number_format($count)),
@@ -149,7 +91,5 @@ if($expand) {
 	}
 	echo $this->Table->output();
 }
-echo $this->Html->tag('p', 'Loaded in ' . number_format($time / 1000, 2) . ' seconds');
-echo $this->Layout->contentBoxClose();
-echo "</div>\n";
 ?>
+</div>

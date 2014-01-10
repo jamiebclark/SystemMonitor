@@ -12,4 +12,20 @@ class StatusController extends SystemMonitorAppController {
 		
 		$this->set(compact('apacheStatus', 'mysqlProcesses', 'expand', 'userName'));
 	}
+	
+	public function admin_mysql_processes() {
+		$mysqlProcesses = $this->MysqlProcess->find('all', compact('userName'));
+		$this->set(compact('mysqlProcesses'));
+		if ($this->request->is('ajax')) {
+			$this->render('SystemMonitor./Elements/mysql_processes');
+		}
+	}
+	
+	public function admin_apache_status() {
+		$apacheStatus = $this->Apache->find('status');
+		$this->set(compact('apacheStatus'));
+		if ($this->request->is('ajax')) {
+			$this->render('SystemMonitor./Elements/apache_status');
+		}
+	}
 }
