@@ -92,6 +92,7 @@ class ApacheMonitor {
 	}
 	
 	function getMemInfo() {
+		$startTime = $this->_timeTrack();
 		$total = array();
 		$detail = array(
 			'MemTotal' => 0,
@@ -112,6 +113,7 @@ class ApacheMonitor {
 			'used' => $detail['MemTotal'] - $detail['MemFree'] - $detail['Cached'],
 			'free' => $detail['MemFree'] + $detail['Cached'],
 			'total' => $detail['MemTotal'],
+			'time' => $this->_timeTrack($startTime)
 		);
 		return compact('total','detail');
 	}
@@ -131,7 +133,7 @@ class ApacheMonitor {
 					foreach ($this->processColumns as $k => $col) {
 						$processes[$pid][$col] = $matches[1][$k];
 					}
-					$processes[$pid]['seconds'] = $this->__timeToSeconds($processes[$pid]['time']);
+					$processes[$pid]['seconds'] = $this->_timeToSeconds($processes[$pid]['time']);
 				}
 			}
 		}
@@ -139,7 +141,7 @@ class ApacheMonitor {
 	}
 	
 	function getTopStatus() {
-		$startTime = $this->__timeTrack();
+		$startTime = $this->_timeTrack();
 		$output = $this->getTop();
 		
 		$return = array(
@@ -147,7 +149,7 @@ class ApacheMonitor {
 			'memory' => $this->_topMemory($output),
 		);
 		
-		$return['time'] = $this->__timeTrack($startTime);
+		$return['time'] = $this->_timeTrack($startTime);
 		
 		return $return;
 		
@@ -161,7 +163,7 @@ class ApacheMonitor {
 		//HTTPd status
 		$match = array();
 		$results = array();
-		$startTime = $this->__timeTrack();
+		$startTime = $this->_timeTrack();
 		
 		exec('/etc/init.d/httpd status', $output, $return);
 		
@@ -192,26 +194,31 @@ class ApacheMonitor {
 				}
 			}
 		}
-		$return['time'] = $this->__timeTrack($startTime);
+		$return['time'] = $this->_timeTrack($startTime);
 		return $return;
 	}
 
+	public function getApacheStatusKeys() {
+		return $this->apacheStatusKeys;
+	}
+	
+	public function getCpuKeys() {
+		return $this->topCpuKeys;
+	}
+	
 	//Extracts Memory Usage from Linux Top output
-	function _topMemory($output) {
-		$startTime = $this->__timeTrack();
+	private function _topMemory($output) {
+		$startTime = $this->_timeTrack();
 		$return = array(
 			'total' => 0,
 			'used' => 0,
 			'unused' => 0,
 			'breakdown' => array()
 		);
-
 		if (!empty($output) && preg_match_all('/([\d\.]+[a-z]{0,1}) ([a-z]+)/', $output[$this->topMemoryLine], $matches)) {
 			foreach($matches[1] as $matchKey =>$matchValue) {
 				$key = $matches[2][$matchKey];
-				
-				$matchValue = $this->__stripSuffix($matchValue) / 1000;
-				
+				$matchValue = $this->_stripSuffix($matchValue) / 1000;
 				if($key == 'total') {
 					$return['total'] = $matchValue;
 					continue;
@@ -223,13 +230,13 @@ class ApacheMonitor {
 				$return['breakdown'][$key] = $matchValue;
 			}
 		}
-		$return['time'] = $this->__timeTrack($startTime);
+		$return['time'] = $this->_timeTrack($startTime);
 		return $return;
 	}
 	
 	//Extracts CPU Usage from Linux Top output
-	function _topCpu($output) {
-		$startTime = $this->__timeTrack();
+	private function _topCpu($output) {
+		$startTime = $this->_timeTrack();
 		$return = array(
 			'total' => 0,
 			'used' => 0,
@@ -248,11 +255,11 @@ class ApacheMonitor {
 				}
 			}
 		}
-		$return['time'] = $this->__timeTrack($startTime);
+		$return['time'] = $this->_timeTrack($startTime);
 		return $return;
 	}
 	
-	function __stripSuffix($number) {
+	private function _stripSuffix($number) {
 		foreach($this->suffixes as $pow=>$suffix) {
 			if($suffix != '' && strtolower(substr($number,-1))==strtolower($suffix)) {
 				return $number * pow(1024,$pow);
@@ -261,14 +268,14 @@ class ApacheMonitor {
 		return $number;
 	}
 	
-	function __timeTrack($start = 0) {
+	private function _timeTrack($start = 0) {
 		$time = microtime();
 		$time = explode(' ', $time);
 		$time = $time[1] + $time[0];
 		return $time - $start;
 	}
 	
-	private function __timeToSeconds($time) {
+	private function _timeToSeconds($time) {
 		preg_match('/([\d]+):([\d]+).([\d]+)/', $time, $matches);
 		return $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
 	}

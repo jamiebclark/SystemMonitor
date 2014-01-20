@@ -7,8 +7,10 @@ class StatusController extends SystemMonitorAppController {
 		$expand = !empty($this->request->params['named']['expand']) ? $this->request->params['named']['expand'] : null;
 		$userName = !empty($this->request->params['named']['user']) ? $this->request->params['named']['user'] : null;
 		
-		$apacheStatus = $this->Apache->find('status');
+		$apacheStatus = $this->Apache->find('all');
 		$mysqlProcesses = $this->MysqlProcess->find('all', compact('userName'));
+		
+		debug($apacheStatus);
 		
 		$this->set(compact('apacheStatus', 'mysqlProcesses', 'expand', 'userName'));
 	}
