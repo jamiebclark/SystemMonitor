@@ -2,6 +2,7 @@
 class StatusController extends SystemMonitorAppController {
 	public $name = 'Status';
 	public $uses = array('SystemMonitor.MysqlProcess', 'SystemMonitor.Apache');
+	public $helpers = array('SystemMonitor.SystemMonitor');
 	
 	public function admin_index() {
 		$expand = !empty($this->request->params['named']['expand']) ? $this->request->params['named']['expand'] : null;

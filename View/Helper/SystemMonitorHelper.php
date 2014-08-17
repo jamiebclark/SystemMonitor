@@ -44,9 +44,10 @@ class SystemMonitorHelper extends AppHelper {
 	
 	public function memoryDetail($memoryDetail) {
 		$this->Table->reset();
-		foreach(memoryDetail as $label => $val) {
+		foreach($memoryDetail as $label => $val) {
+			
 			$reverse = ($label != 'free');
-			$color = $this->TextGraph->colorRange($val, 0, $total, $reverse);
+			$color = $this->TextGraph->colorRange($val, 0, 100, $reverse);
 			$this->Table->cells(array(
 				array($this->Number->toReadableSize($val),array('style'=>'color:'.$color)),
 				array($label, array('style'=>'color:'.$color))
@@ -59,9 +60,10 @@ class SystemMonitorHelper extends AppHelper {
 		$this->Table->reset();
 		foreach($this->cpuKeys as $key => $label) {
 			$reverse = ($key != 'id');
-			$color = $this->TextGraph->colorRange($cpuDetail[$key], 0, 100, $reverse);
+			$val = !empty($cpuDetail[$key]) ? $cpuDetail[$key] : 0;
+			$color = $this->TextGraph->colorRange($val, 0, 100, $reverse);
 			$this->Table->cells(array(
-				array($cpuDetail[$key] . '%', array('style'=>'color:'.$color)),
+				array($val . '%', array('style'=>'color:'.$color)),
 				array($label, array('style'=>'color:'.$color))
 			), true);
 		}

@@ -24,11 +24,11 @@ $top['Apache Status'] = array($apacheStatus['used'], $apacheStatus['total'], 'Po
 	</p> 
 	<p><strong><?php echo $title; ?></strong> [<?php echo $this->Html->link($link[0], $link[1]); ?>]</p>
 
-	<div class="row-fluid">
+	<div class="row">
 	<?php foreach ($top as $title => $stats): 
 		list($used, $total, $type) = $stats + array(null, null, null);
 		?>
-		<div class="span4">
+		<div class="col-sm-4">
 			<?php echo $this->SystemMonitor->statusBox($title, $used, $total, $type); ?>
 		</div>
 	<?php endforeach ?>
@@ -37,7 +37,7 @@ $top['Apache Status'] = array($apacheStatus['used'], $apacheStatus['total'], 'Po
 
 if($expand || true) {
 	//Memory
-	echo $this->SysemtMonitor->memoryDetail($memory['detail']);
+	echo $this->SystemMonitor->memoryDetail($memory['detail']);
 
 	//CPU
 	echo $this->SystemMonitor->cpuDetail($cpu['breakdown']);
