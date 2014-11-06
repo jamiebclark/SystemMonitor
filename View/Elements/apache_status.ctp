@@ -17,7 +17,7 @@ $top['Apache Status'] = array($apacheStatus['used'], $apacheStatus['total'], 'Po
 
 ?>
 <div id="apachestatus">
-	<p class="note"><?php echo $this->Html->link(
+	<p class="help-block"><?php echo $this->Html->link(
 			'Last pulled: ' . date('F j, Y g:i:s a'),
 			Router::url()
 		);?>
