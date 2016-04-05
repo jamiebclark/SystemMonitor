@@ -7,7 +7,7 @@ class MysqlProcessesController extends SystemMonitorAppController {
 		try {
 			$this->MysqlProcess->kill($id);
 		} catch(PDOException $e) {
-			$this->Session->setFlash($e->getMessage(), 'default', array('class' => 'alert-error'));
+			$this->Flash->error($e->getMessage());
 		}
 		$this->redirect($this->referer());
 	}
